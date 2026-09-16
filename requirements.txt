@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+streamlit
+numpy
+requests
+python-multipart
