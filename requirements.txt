@@ -6,3 +6,5 @@ requests
 python-multipart
 pytest
 httpx
+pypdf
+python-docx

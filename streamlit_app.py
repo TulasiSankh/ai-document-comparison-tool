@@ -1,6 +1,7 @@
 import streamlit as st
 
 from app.compare import compare_documents
+from app.document_loader import load_document, DocumentParseError
 
 st.set_page_config(page_title="AI Document Comparison Tool", layout="wide")
 st.title("📄 AI Document Comparison Tool")
@@ -9,16 +10,41 @@ st.caption("Semantic diff powered by local embeddings (Ollama) — not just line
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Original")
-    file_a = st.file_uploader("Upload original", type=["txt", "md"], key="upload_a")
-    text_a = file_a.read().decode("utf-8") if file_a else st.text_area(
-        "...or paste original text", height=220, key="text_a"
-    )
+    file_a = st.file_uploader("Upload original", type=["txt", "md", "pdf", "docx"], key="upload_a")
+    text_a = ""
+    if file_a:
+        try:
+            if file_a.size > 5 * 1024 * 1024:
+                st.error("File exceeds 5MB binary limit.")
+                st.stop()
+            text_a = load_document(file_a.read(), file_a.name)
+        except getattr(DocumentParseError, "__module__", Exception) as e:
+            st.error(str(e))
+            st.stop()
+        except Exception as e:
+            st.error(str(e))
+            st.stop()
+    else:
+        text_a = st.text_area("...or paste original text", height=220, key="text_a")
+        
 with col2:
     st.subheader("Revised")
-    file_b = st.file_uploader("Upload revised", type=["txt", "md"], key="upload_b")
-    text_b = file_b.read().decode("utf-8") if file_b else st.text_area(
-        "...or paste revised text", height=220, key="text_b"
-    )
+    file_b = st.file_uploader("Upload revised", type=["txt", "md", "pdf", "docx"], key="upload_b")
+    text_b = ""
+    if file_b:
+        try:
+            if file_b.size > 5 * 1024 * 1024:
+                st.error("File exceeds 5MB binary limit.")
+                st.stop()
+            text_b = load_document(file_b.read(), file_b.name)
+        except getattr(DocumentParseError, "__module__", Exception) as e:
+            st.error(str(e))
+            st.stop()
+        except Exception as e:
+            st.error(str(e))
+            st.stop()
+    else:
+        text_b = st.text_area("...or paste revised text", height=220, key="text_b")
 
 STATUS_STYLE = {
     "unchanged": ("⚪", "#666666"),

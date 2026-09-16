@@ -4,6 +4,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from .compare import compare_documents
+from .document_loader import load_document, DocumentParseError
 
 app = FastAPI(title="AI Document Comparison Tool")
 
@@ -15,14 +16,14 @@ app.add_middleware(
 )
 
 
-def _read_upload(file: UploadFile) -> str:
-    return file.file.read().decode("utf-8", errors="ignore")
-
-
 @app.post("/compare")
 async def compare_files(file_a: UploadFile = File(...), file_b: UploadFile = File(...)):
-    text_a = _read_upload(file_a)
-    text_b = _read_upload(file_b)
+    try:
+        text_a = load_document(await file_a.read(), file_a.filename)
+        text_b = load_document(await file_b.read(), file_b.filename)
+    except DocumentParseError as e:
+        return {"error": str(e)}
+        
     diffs = compare_documents(text_a, text_b)
     return {"diffs": [asdict(d) for d in diffs]}
 
