@@ -4,3 +4,5 @@ streamlit
 numpy
 requests
 python-multipart
+pytest
+httpx
